@@ -1,6 +1,5 @@
 "use client"
 
-import { QuoteProvider } from "@/contexts/quote-context"
 import { QuoteModal } from "@/components/quote/quote-modal"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
@@ -15,7 +14,7 @@ import { ContactSection } from "@/components/sections/contact-section"
 
 export function HomePage() {
   return (
-    <QuoteProvider>
+    <>
       <SiteHeader />
       <main>
         <Hero />
@@ -29,6 +28,6 @@ export function HomePage() {
       <SiteFooter />
       <FloatingCta />
       <QuoteModal />
-    </QuoteProvider>
+    </>
   )
 }

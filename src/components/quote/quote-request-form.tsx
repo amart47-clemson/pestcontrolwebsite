@@ -21,24 +21,79 @@ type QuoteRequestFormProps = {
   onSuccess?: () => void
 }
 
+async function sendWeb3FormsEmail(payload: Record<string, string>) {
+  const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY?.trim()
+  if (!accessKey) return
+
+  const response = await fetch("https://api.web3forms.com/submit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      access_key: accessKey,
+      subject: `New estimate request from ${payload.name}`,
+      name: payload.name,
+      email: payload.email || "noreply@piercepestcontrol.com",
+      phone: payload.phone,
+      address: payload.address,
+      pest_type: payload.pestType,
+      preferred_contact: payload.preferredContact,
+      message: payload.description,
+    }),
+  })
+
+  const data = (await response.json()) as { success?: boolean; message?: string }
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.message ?? "Email notification failed.")
+  }
+}
+
 export function QuoteRequestForm({
   idPrefix = "quote",
   variant = "modal",
   onSuccess,
 }: QuoteRequestFormProps) {
-  const [step, setStep] = useState<"idle" | "submitting" | "success">("idle")
+  const [step, setStep] = useState<"idle" | "submitting" | "success" | "error">(
+    "idle"
+  )
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setStep("submitting")
-    const data = new FormData(e.currentTarget)
-    const payload = Object.fromEntries(data.entries())
-    console.info("[Pierce Pest Control] Quote request:", payload)
+    setErrorMessage(null)
 
-    setTimeout(() => {
+    const data = new FormData(e.currentTarget)
+    const payload = Object.fromEntries(data.entries()) as Record<string, string>
+
+    try {
+      const response = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      const result = (await response.json()) as { error?: string }
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Unable to submit your request.")
+      }
+
+      await sendWeb3FormsEmail(payload)
+
       setStep("success")
       onSuccess?.()
-    }, 1200)
+    } catch (error) {
+      setStep("error")
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to submit your request. Please call us instead."
+      )
+    }
   }
 
   if (step === "success") {
@@ -256,10 +311,24 @@ export function QuoteRequestForm({
             />
             Sending...
           </span>
+        ) : step === "error" ? (
+          "Try again"
         ) : (
           "Submit free estimate request"
         )}
       </button>
+
+      {errorMessage && (
+        <p
+          className={cn(
+            "text-sm text-center",
+            variant === "modal" ? "text-red-200" : "text-destructive"
+          )}
+          role="alert"
+        >
+          {errorMessage}
+        </p>
+      )}
 
       <p
         className={cn(

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Oxanium, Merriweather, Fira_Code } from "next/font/google"
+import { Providers } from "@/components/providers"
 import "./globals.css"
 
 const oxanium = Oxanium({
@@ -34,7 +35,9 @@ export default function RootLayout({
       lang="en"
       className={`${oxanium.variable} ${merriweather.variable} ${firaCode.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

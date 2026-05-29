@@ -14,6 +14,12 @@ export const SITE = {
   licenseNote: "Licensed & insured · Free inspections · Satisfaction guaranteed",
 } as const
 
+export const SCHEDULE_TIME_FRAMES = [
+  { label: "Morning (8:00 AM – 12:00 PM)" },
+  { label: "Afternoon (12:00 PM – 4:00 PM)" },
+  { label: "Evening (4:00 PM – 7:00 PM)" },
+] as const
+
 export const NAV_LINKS = [
   { label: "Services", href: "#services" },
   { label: "Why Us", href: "#why-us" },
